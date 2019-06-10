@@ -1,0 +1,155 @@
+# strongSwan VPN pod deployment
+{{- if .Capabilities.APIVersions.Has "apps/v1" }}
+apiVersion: apps/v1
+{{- else }}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Deployment
+metadata:
+  name: {{ template "strongswan.fullname" . }}
+  namespace: {{ template "strongswan.namespace" . }}
+  labels:
+    app: {{ template "strongswan.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "strongswan.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "strongswan.name" . }}
+        release: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-config.yaml") . | sha256sum }}
+        productID: strongSwan_5.6.3
+        productName: strongSwan
+        productVersion: 5.6.3
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+{{- if .Values.nodeSelector }}
+              - key: {{ template "strongswan.nodeSelectorKey" . }}
+                operator: In
+                values:
+                - {{ template "strongswan.nodeSelectorValue" . }}
+{{- end }}
+{{- if .Values.zoneSelector }}
+              - key: failure-domain.beta.kubernetes.io/zone
+                operator: In
+                values:
+                - {{ .Values.zoneSelector }}
+{{- end }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: {{ template "strongswan.name" . }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ template "strongswan.image" . }}
+          imagePullPolicy: {{ template "strongswan.pullPolicy" . }}
+          readinessProbe:
+            exec:
+              command:
+              - "bash"
+              - "-c"
+              - "if $(pgrep -x /usr/lib/strongswan/starter >/dev/null 2>&1) && $(pgrep -x /usr/lib/strongswan/charon >/dev/null 2>&1); then exit 0; else exit 1; fi"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+              - "bash"
+              - "-c"
+              - "if $(pgrep -x /usr/lib/strongswan/starter >/dev/null 2>&1) && $(pgrep -x /usr/lib/strongswan/charon >/dev/null 2>&1); then exit 0; else exit 1; fi"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          ports:
+            - name: ike
+              containerPort: 500
+              protocol: UDP
+            - name: ike-nat
+              containerPort: 4500
+              protocol: UDP
+          resources:
+            requests:
+              cpu: 5m
+              memory: 10Mi
+          securityContext:
+{{- if .Values.privilegedVpnPod }}
+            privileged: true
+{{- else }}
+            capabilities:
+              add:
+              - NET_ADMIN
+{{- end }}
+          env:
+            - name: CONNECT_USING_LB_IP
+              value: "{{ template "strongswan.connectUsingLoadBalancerIP" . }}"
+            - name: ENABLE_MONITORING
+              value: {{ .Values.monitoring.enable | quote }}
+            - name: ENABLE_POD_SNAT
+              value: {{ .Values.enablePodSNAT | quote }}
+            - name: ENABLE_SINGLE_IP
+              value: {{ .Values.enableSingleSourceIP | quote }}
+            - name: KUBE_VERSION
+              value: "{{ template "strongswan.kubeVersion" . }}"
+{{- if .Values.loadBalancerIP }}
+            - name: LOAD_BALANCER_IP
+              value: {{ .Values.loadBalancerIP }}
+{{- end }}
+{{- if .Values.localSubnetNAT }}
+            - name: LOCAL_SUBNET_NAT
+              value: {{ .Values.localSubnetNAT | replace "\n" "," | replace " " "" | quote }}
+{{- end }}
+{{- if .Values.remoteSubnetNAT }}
+            - name: REMOTE_SUBNET_NAT
+              value: {{ .Values.remoteSubnetNAT | replace "\n" "," | replace " " "" | quote }}
+{{- end }}
+            - name: NAMESPACE
+              value: {{ template "strongswan.namespace" . }}
+            - name: RELEASE_NAME
+              value: {{ .Release.Name }}
+            - name: SERVICE_NAME
+              value: {{ template "strongswan.fullname" . }}
+            - name: VALIDATE_CONFIG
+              value: {{ .Values.validate | quote }}
+{{- if .Values.zoneLoadBalancer }}
+            - name: ZONE_LOAD_BALANCER
+              value: {{ .Values.zoneLoadBalancer | replace "\n" "," | replace " " "" | quote }}
+{{- end }}
+          volumeMounts:
+            - name: strongswan-config
+              mountPath: /etc/ipsec.config/
+      hostNetwork: false
+{{- if and (.Capabilities.KubeVersion.Major | hasPrefix "1") (ge (.Capabilities.KubeVersion.Minor | int) 11) }}
+{{- if eq .Release.Namespace "kube-system" }}
+      priorityClassName: system-cluster-critical
+{{- end }}
+{{- end }}
+{{- if .Values.enableRBAC }}
+      serviceAccountName: {{ template "strongswan.fullname" . }}
+{{- end }}
+      tolerations:
+      - key: dedicated
+        value: edge
+      volumes:
+        - name: strongswan-config
+          configMap:
+            defaultMode: 420
+            name: {{ .Release.Name }}-{{ .Chart.Name }}-config

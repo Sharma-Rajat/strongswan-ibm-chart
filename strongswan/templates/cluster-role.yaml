@@ -1,0 +1,19 @@
+{{- if .Values.enableRBAC -}}
+kind: ClusterRole
+{{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1" }}
+apiVersion: rbac.authorization.k8s.io/v1
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- end }}
+metadata:
+  name: {{ template "strongswan.fullname" . }}
+  labels:
+    app: {{ template "strongswan.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "nodes", "secrets"]
+  verbs: ["get"]
+{{- end -}}

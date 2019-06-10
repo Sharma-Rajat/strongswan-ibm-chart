@@ -1,0 +1,40 @@
+{{- if or (eq .Values.helmTestsToRun "ALL") (contains "check-state" .Values.helmTestsToRun) -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ template "strongswan.fullname" . }}-check-state
+  namespace: {{ template "strongswan.namespace" . }}
+  labels:
+    app: {{ template "strongswan.name" . }}-test
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+  - name: {{ template "strongswan.fullname" . }}-check-state
+    image: alpine:3.9
+    command: ["sh", "-c"]
+    args:
+    - >
+      echo "-------------------------------------------------------";
+      echo "  Check the state of the ipsec service in the VPN pod";
+      echo "-------------------------------------------------------";
+      echo "-- Add curl to the image --";
+      apk update && apk add curl;
+      cd /usr/local/bin;
+      echo "-- Add kubectl to the image -- {{ template "strongswan.kubeVersion" . }}";
+      curl -LO https://storage.googleapis.com/kubernetes-release/release/{{ template "strongswan.kubeVersion" . }}/bin/linux/amd64/kubectl;
+      chmod +x kubectl;
+      echo "-- Determine vpn pod name --";
+      vpnPod=$(kubectl get pod -n {{ template "strongswan.namespace" . }} -l app=strongswan,release={{ .Release.Name }} --no-headers | awk '{ print $1 }');
+      echo "VPN pod: $vpnPod";
+      echo "-- Retrieve status of the VPN pod --";
+      kubectl exec -n {{ template "strongswan.namespace" . }} ${vpnPod} -- ipsec statusall | tee /tmp/ipsec.status;
+      grep -q "ESTABLISHED" /tmp/ipsec.status
+  restartPolicy: Never
+{{- if .Values.enableRBAC }}
+  serviceAccountName: {{ template "strongswan.fullname" . }}
+{{- end }}
+{{- end -}}

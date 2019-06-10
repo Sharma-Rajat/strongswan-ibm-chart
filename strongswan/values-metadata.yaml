@@ -1,0 +1,453 @@
+## Metadata for strongSwan configuration
+
+validate:
+  __metadata:
+    name: "validate"
+    label: "Validate config"
+    description: "Level of parameter validation to be run against the ipsec.conf data.  See values.yaml for options."
+    type: string
+    immutable: false
+    required: true
+
+overRideIpsecConf:
+  __metadata:
+    name: "overRideIpsecConf"
+    label: "Over ride ipsec.conf"
+    description: "Contents of ipsec.conf file to use instead of the generated one"
+    type: string
+    immutable: false
+    required: false
+
+overRideIpsecSecrets:
+  __metadata:
+    name: "overRideIpsecSecrets"
+    label: "Over ride ipsec.secrets"
+    description: "Contents of ipsec.secrets file to use instead of the generated one"
+    type: string
+    immutable: false
+    required: false
+
+enablePodSNAT:
+  __metadata:
+    name: "enablePodSNAT"
+    label: "Enabled pod SNAT"
+    description: "Enable Source Network Address Translation (SNAT) for outbound pod traffic.  See values.yaml for options."
+    type: string
+    immutable: false
+    required: true
+
+enableRBAC:
+  __metadata:
+    name: "enableRBAC"
+    label: "Enable RBAC"
+    description: "Enable creation of RBAC resources"
+    type: boolean
+    immutable: false
+    required: true
+
+enableServiceSourceIP:
+  __metadata:
+    name: "enableServiceSourceIP"
+    label: "Enabled Source IP"
+    description: "Enable Source IP on the strongSwan service"
+    type: boolean
+    immutable: false
+    required: true
+
+enableSingleSourceIP:
+  __metadata:
+    name: "enableSingleSourceIP"
+    label: "Enable single source IP"
+    description: "Enable a single source IP address for all traffic from the cluster over the VPN connection."
+    type: boolean
+    immutable: false
+    required: true
+
+localNonClusterSubnet:
+  __metadata:
+    name: "localNonClusterSubnet"
+    label: "Local Non Cluster Subnet"
+    description: "List of local non cluster subnets to expose over the VPN connection."
+    type: string
+    immutable: false
+    required: false
+
+localSubnetNAT:
+  __metadata:
+    name: "localSubnetNAT"
+    label: "Local subnet NAT mapping"
+    description: "List of local subnet to remote subnet mappings that should be configured.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+remoteSubnetNAT:
+  __metadata:
+    name: "remoteSubnetNAT"
+    label: "Remote subnet NAT mapping"
+    description: "List of remote subnet to local subnet mappings that should be configured.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+loadBalancerIP:
+  __metadata:
+    name: "loadBalancerIP"
+    label: "Load Balancer IP address"
+    description: "The public IP address to use for inbound VPN connections"
+    type: string
+    immutable: false
+    required: false
+
+zoneLoadBalancer:
+  __metadata:
+    name: "zoneLoadBalancer"
+    label: "Zone Load Balancer IP address List"
+    description: "List that indicates which Load Balancer IP address should be used in each zone. See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+connectUsingLoadBalancerIP:
+  __metadata:
+    name: "connectUsingLoadBalancerIP"
+    label: "Connect using Load Balancer IP address"
+    description: "Use the load balancer IP address to establish outbound VPN connection"
+    type: string
+    immutable: false
+    required: true
+
+nodeSelector:
+  __metadata:
+    name: "nodeSelector"
+    label: "Node Selector for VPN pod"
+    description: "Limit which nodes the VPN pod is scheduled on.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+zoneSelector:
+  __metadata:
+    name: "zoneSelector"
+    label: "Zone Selector for VPN pod and service"
+    description: "Specifies the availability zone for the VPN pod and load balancer service.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+zoneSpecificRoutes:
+  __metadata:
+    name: "zoneSpecificRoutes"
+    label: "Zone specific routes"
+    description: "Limit VPN routes to the workers nodes in a specified zone"
+    type: boolean
+    immutable: false
+    required: true
+
+privilegedVpnPod:
+  __metadata:
+    name: "privilegedVpnPod"
+    label: "Privileged authority for VPN pod"
+    description: "Run the strongSwan VPN pod with privileged authority.  Normally this is not required."
+    type: boolean
+    immutable: false
+    required: true
+
+helmTestsToRun:
+  __metadata:
+    name: "helmTestsToRun"
+    label: "Helm tests to run"
+    description: "A comma separated lists of tests that should run during `helm test` or 'ALL' to run them all"
+    type: string
+    immutable: false
+    required: true
+
+tolerations:
+  __metadata:
+    name: "tolerations"
+    label: "Tolerations for the VPN route daemon"
+    description: "Allows the VPN route daemon to be run on nodes that have been tainted.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+strongswanLogging:
+  __metadata:
+    name: "strongswanLogging"
+    label: "Logging options"
+    description: "List of logging levels for each of the desired strongSwan components.  See values.yaml for usage instructions."
+    type: string
+    immutable: false
+    required: false
+
+ipsec:
+  __metadata:
+    label: "ipsec"
+    description: "IPSec configuration"
+  keyexchange:
+    __metadata:
+      name: "keyexchange"
+      label: "IPSec Key exchange version"
+      description: "Which ipsec protocol should be used to initialize the connection."
+      type: string
+      immutable: false
+      required: true
+
+  esp:
+    __metadata:
+      name: "esp"
+      label: "ESP encryption/authentications algorithms"
+      description: "List of ESP encryption/authentication algorithms to use for the VPN tunnel"
+      type: string
+      immutable: false
+      required: false
+
+  ike:
+    __metadata:
+      name: "ike"
+      label: " IKE/ISAKMP SA encryption/authentication algorithms"
+      description: "List of IKE/ISAKMP SA encryption/authentication algorithms to use for the VPN tunnel"
+      type: string
+      immutable: false
+      required: false
+
+  auto:
+    __metadata:
+      name: "auto"
+      label: "Operation at startup"
+      description: "Either <start> to initiate the VPN connection or <add> to listen for the incoming VPN connection"
+      type: string
+      immutable: false
+      required: true
+
+  closeaction:
+    __metadata:
+      name: "closeaction"
+      label: "Action if peer closes"
+      description: "Action to take if the the remote peer unexpectedly closes the VPN connection. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  dpdaction:
+    __metadata:
+      name: "dpdaction"
+      label: "Action if dead peer"
+      description: "Action to take if the the remote peer does not respond. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  ikelifetime:
+    __metadata:
+      name: "ikelifetime"
+      label: "Life of IKE SA connection"
+      description: "How long an IKE SA connection lasts, from negotiation to expiry. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  keyingtries:
+    __metadata:
+      name: "keyingtries"
+      label: "Negotiate retries"
+      description: "How many attempts to negotiate an IPsec SA or IKE SA connection or a replacement before giving up. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  lifetime:
+    __metadata:
+      name: "lifetime"
+      label: "Life of IPsec SA connection"
+      description: "How long an IPsec SA connection lasts, from negotiation to expiry. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  margintime:
+    __metadata:
+      name: "margintime"
+      label: "Renegotiate window time"
+      description: "How long before the expiry of an IPsec SA or IKE SA connection rekeying should begin. See values.yaml for options."
+      type: string
+      immutable: false
+      required: true
+
+  additionalOptions:
+    __metadata:
+      name: "additionalOptions"
+      label: "List of additional IPSec options"
+      description: "Additional ipsec options that should be used for the VPN connection. See values.yaml for usage instructions."
+      type: string
+      immutable: false
+      required: false
+
+local:
+  __metadata:
+    label: "local"
+    description: "Local VPN endpoint configuration"
+  subnet:
+    __metadata:
+      name: "subnet"
+      label: "Local subnets"
+      description: "List of local subnets to expose over the VPN connection. See values.yaml for usage instructions."
+      type: string
+      immutable: false
+      required: true
+
+  id:
+    __metadata:
+      name: "id"
+      label: "Local id"
+      description: "String identifier for the local Kubernetes cluster side your VPN tunnel endpoint uses for the connection."
+      type: string
+      immutable: false
+      required: true
+
+remote:
+  __metadata:
+    label: "remote"
+    description: "Remote VPN endpoint configuration"
+  gateway:
+    __metadata:
+      name: "gateway"
+      label: "Remote gateway"
+      description: "Public IP address of the remote VPN gateway"
+      type: string
+      immutable: false
+      required: true
+
+  subnet:
+    __metadata:
+      name: "subnet"
+      label: "Remote subnets"
+      description: "List of remote subnets that the Kubernetes cluster is allowed to access. See values.yaml for usage instructions."
+      type: string
+      immutable: false
+      required: true
+
+  id:
+    __metadata:
+      name: "id"
+      label: "Remote id"
+      description: "String identifier for the remote side of the VPN tunnel"
+      type: string
+      immutable: false
+      required: true
+
+  privateIPtoPing:
+    __metadata:
+      name: "privateIPtoPing"
+      label: "Remote private IP address"
+      description: "An IP address in the remote subnet that can be used by test programs to test VPN connectivity using ping"
+      type: string
+      immutable: false
+      required: false
+
+preshared:
+  __metadata:
+    label: "preshared"
+    description: "Pre-shared configuration"
+  secret:
+    __metadata:
+      name: "secret"
+      label: "Pre-shared secret"
+      description: "Pre-shared string that is used by both sides of the VPN tunnel to secure the VPN connection"
+      type: string
+      immutable: false
+      required: true
+
+monitoring:
+  __metadata:
+    label: "monitoring"
+    description: "Monitoring configuration"
+  enable:
+    __metadata:
+      name: "enable"
+      label: "Enable Monitoring"
+      description: "Enable monitoring of the VPN connection."
+      type: boolean
+      immutable: false
+      required: true
+
+  clusterName:
+    __metadata:
+      name: "clusterName"
+      label: "Name of cluster"
+      description: "Name of cluster. This is used to identify the cluster in logs and slack (if configured)."
+      type: string
+      immutable: false
+      required: true
+
+  privateIPs:
+    __metadata:
+      name: "privateIPs"
+      label: "Remote private IP address(es)"
+      description: "A comma separated list of IP addresses in the remote subnet used to monitor VPN connectivity."
+      type: string
+      immutable: false
+      required: false
+
+  httpEndpoints:
+    __metadata:
+      name: "httpEndpoints"
+      label: "Remote private Endpoint(s)"
+      description: "A comma separated list of HTTP endpoints in the remote subnet used to monitor VPN connectivity."
+      type: string
+      immutable: false
+      required: false
+
+  timeout:
+    __metadata:
+      name: "timeout"
+      label: "Timeout for Monitoring tests"
+      description: "Time (in seconds) that each attempt of a monitoring test has to complete before it will be classified as a failure"
+      type: number
+      immutable: false
+      required: false
+
+  delay:
+    __metadata:
+      name: "delay"
+      label: "Time between monitoring test suite runs"
+      description: "This is the delay (in seconds) between re-running the monitoring test suite"
+      type: number
+      immutable: false
+      required: false
+
+  slackWebhook:
+    __metadata:
+      name: "slackWebhook"
+      label: "Slack Webhook URL"
+      description: "Slack Webhook URL for the Incoming WebHooks custom integration app"
+      type: string
+      immutable: false
+      required: false
+
+  slackChannel:
+    __metadata:
+      name: "slackChannel"
+      label: "Slack Channel"
+      description: "Name of slack channel where VPN monitoring updates are posted"
+      type: string
+      immutable: false
+      required: false
+
+  slackUsername:
+    __metadata:
+      name: "slackUsername"
+      label: "Slack Username"
+      description: "Slack username that will be used when posting the monitoring messages"
+      type: string
+      immutable: false
+      required: false
+
+  slackIcon:
+    __metadata:
+      name: "slackIcon"
+      label: "Slack Icon"
+      description: "Slack icon that will be used when posting the monitoring messages"
+      type: string
+      immutable: false
+      required: false

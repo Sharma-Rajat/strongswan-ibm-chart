@@ -1,0 +1,58 @@
+{{- if or (eq .Values.helmTestsToRun "ALL") (contains "ping-remote-ip-1" .Values.helmTestsToRun) -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ template "strongswan.fullname" . }}-ping-remote-ip-1
+  namespace: {{ template "strongswan.namespace" . }}
+  labels:
+    app: {{ template "strongswan.name" . }}-test
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+{{- if and .Values.zoneSelector .Values.zoneSpecificRoutes }}
+          - key: failure-domain.beta.kubernetes.io/zone
+            operator: In
+            values:
+            - {{ .Values.zoneSelector }}
+{{- end }}
+  containers:
+  - name: {{ template "strongswan.fullname" . }}-ping-remote-ip-1
+    image: alpine:3.9
+    command: ["sh", "-c"]
+    args:
+    - >
+      echo "-------------------------------------------------";
+      echo "  Verify that we can ping the remote private ip";
+      echo "-------------------------------------------------";
+      echo "Configuration values:";
+      echo "   local.subnet= {{ .Values.local.subnet }}";
+      echo "   remote.subnet= {{ .Values.remote.subnet }}";
+      echo "   remote.privateIPtoPing= {{ .Values.remote.privateIPtoPing }}";
+      echo "Local IP address: ";
+      ip -f inet -o addr | grep -v " lo " | awk '{ print "   "$2"= "$4 }';
+      echo "-------------------------------------------------";
+      if [ "{{ .Values.remote.privateIPtoPing }}" == "" ]; then
+        echo "Remote private IP was not configured";
+        exit 1;
+      fi;
+      if ! echo "{{ .Values.local.subnet }}" | grep -q "172.30.0.0/16"; then
+        echo "In order for this ping test to work, the Kubernetes pod subnet (172.30.0.0/16)";
+        echo "must be listed in local.subnet= that are exposed over the VPN  --AND--";
+        echo "the on-prem VPN needs to accept all of the subnets listed in local.subnet=";
+        echo "-------------------------------------------------";
+      fi;
+      ping -c 3 {{ .Values.remote.privateIPtoPing }}
+  restartPolicy: Never
+{{- end -}}

@@ -1,0 +1,33 @@
+{{- if or (eq .Values.helmTestsToRun "ALL") (contains "ping-remote-gw" .Values.helmTestsToRun) -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ template "strongswan.fullname" . }}-ping-remote-gw
+  namespace: {{ template "strongswan.namespace" . }}
+  labels:
+    app: {{ template "strongswan.name" . }}-test
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+  - name: {{ template "strongswan.fullname" . }}-ping-remote-gw
+    image: alpine:3.9
+    command: ["sh", "-c"]
+    args:
+    - >
+      echo "----------------------------------------------";
+      echo "  Verify that we can PING the remote gateway";
+      echo "----------------------------------------------";
+      echo "Configuration values:";
+      echo "   ipsec.auto={{ .Values.ipsec.auto }}";
+      echo "   remote.gateway={{ .Values.remote.gateway }}";
+      if [ "{{ .Values.remote.gateway }}" == "%any" ]; then
+        echo "Remote gateway was not configured.";
+        exit 1;
+      fi;
+      ping -c 3 {{ .Values.remote.gateway }}
+  restartPolicy: Never
+{{- end -}}

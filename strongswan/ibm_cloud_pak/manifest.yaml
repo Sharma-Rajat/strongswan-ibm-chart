@@ -1,0 +1,9 @@
+charts:
+  - archive: file:strongswan-2.5.0.tgz
+    repository-keys:
+      - image.repository
+
+images:
+- image: ibmcloudcontainers/strongswan:19-03-18
+  references:
+  - repository: ibmcloudcontainers/strongswan:19-03-18

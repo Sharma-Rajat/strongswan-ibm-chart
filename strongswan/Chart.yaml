@@ -1,0 +1,22 @@
+apiVersion: v1
+appVersion: 19.03.18
+description: A strongSwan IPSec VPN service to securely connect your Kubernetes cluster
+  to another network.
+home: https://www.strongswan.org/
+icon: https://www.strongswan.org/images/strongswan.png
+keywords:
+- strongswan
+- ipsec
+- vpn
+- tunnel
+- Network
+- amd64
+- IKS
+- ICP
+- Limited
+maintainers:
+- email: jckasper@us.ibm.com
+  name: John Kasperski
+name: strongswan
+tillerVersion: '>=2.8.0'
+version: 2.5.0
